@@ -1,0 +1,1 @@
+docker-compose exec debezium debezium-connector/connector.sh

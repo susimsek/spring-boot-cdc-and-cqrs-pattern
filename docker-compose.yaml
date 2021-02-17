@@ -1,0 +1,189 @@
+version: '3.7'
+
+services:
+  app:
+    image: app:${SERVICE_IMAGE_TAG}
+    container_name: app
+    restart: ${RESTART_POLICY}
+    environment:
+      - TZ
+      - SERVER_PORT
+      - API_BASE_PATH
+      - MONGODB_HOST
+      - MONGODB_DATABASE
+      - MONGODB_USERNAME=root
+      - MONGODB_PASSWORD=root
+      - MONGODB_REPLICA_SET_NAME
+      - ELASTICSEARCH_HOST
+      - ELASTICSEARCH_PORT
+      - OPENAPI_TITLE
+      - OPENAPI_DESCRIPTION
+      - OPENAPI_VERSION
+      - OPENAPI_TERMS-OF-SERVICE-URL
+      - OPENAPI_LICENCE
+      - OPENAPI_LICENCE_URL
+      - PROBLEM_FIELD_ERRORS_KEY
+      - PROBLEM_MESSAGE_KEY
+      - PROBLEM_PATH_KEY
+      - PROBLEM_VIOLATIONS_KEY
+      - PROBLEM_ERROR_VALIDATION
+      - PROBLEM_BASE_URL
+      - PROBLEM_UNEXPECTED_ERROR_PACKAGE_LIST
+    ports:
+      - ${SERVER_PORT}:${SERVER_PORT}
+
+  denormalizer:
+    image: denormalizer:${SERVICE_IMAGE_TAG}
+    container_name: denormalizer
+    restart: ${RESTART_POLICY}
+    environment:
+      - TZ
+      - DENORMALIZER_SERVER_PORT
+      - KAFKA_HOST
+      - KAFKA_PORT
+      - KAFKA_TOPICS
+      - ELASTICSEARCH_HOST
+      - ELASTICSEARCH_PORT
+    ports:
+      - ${DENORMALIZER_SERVER_PORT}:${DENORMALIZER_SERVER_PORT}
+
+  mongodb-primary:
+    image: bitnami/mongodb:${MONGO_IMAGE_TAG}
+    container_name: mongodb-primary
+    restart: ${RESTART_POLICY}
+    environment:
+      - TZ
+      - MONGODB_USERNAME
+      - MONGODB_PASSWORD
+      - MONGODB_DATABASE
+      - MONGODB_ROOT_PASSWORD
+      - MONGODB_REPLICA_SET_NAME
+      - MONGODB_REPLICA_SET_KEY
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-primary
+      - MONGODB_REPLICA_SET_MODE=primary
+    volumes:
+      - ./data/mongodb-data:/bitnami/mongodb:Z
+    ports:
+      - 27017:27017
+
+  mongodb-secondary:
+    image: bitnami/mongodb:${MONGO_IMAGE_TAG}
+    container_name: mongodb-secondary
+    restart: ${RESTART_POLICY}
+    environment:
+      - TZ
+      - MONGODB_USERNAME
+      - MONGODB_PASSWORD
+      - MONGODB_DATABASE
+      - MONGODB_REPLICA_SET_NAME
+      - MONGODB_REPLICA_SET_KEY
+      - MONGODB_INITIAL_PRIMARY_HOST
+      - MONGODB_INITIAL_PRIMARY_PORT_NUMBER
+      - MONGODB_INITIAL_PRIMARY_ROOT_PASSWORD
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-secondary
+      - MONGODB_REPLICA_SET_MODE=secondary
+    ports:
+      - 27027:27017
+
+  mongodb-arbiter:
+    image: bitnami/mongodb:${MONGO_IMAGE_TAG}
+    container_name: mongodb-arbiter
+    restart: ${RESTART_POLICY}
+    environment:
+      - TZ
+      - MONGODB_USERNAME
+      - MONGODB_PASSWORD
+      - MONGODB_DATABASE
+      - MONGODB_REPLICA_SET_NAME
+      - MONGODB_REPLICA_SET_KEY
+      - MONGODB_INITIAL_PRIMARY_HOST
+      - MONGODB_INITIAL_PRIMARY_PORT_NUMBER
+      - MONGODB_INITIAL_PRIMARY_ROOT_PASSWORD
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-arbiter
+      - MONGODB_REPLICA_SET_MODE=arbiter
+    ports:
+      - 27037:27017
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_IMAGE_TAG}
+    container_name: elasticsearch
+    restart: ${RESTART_POLICY}
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    environment:
+      - discovery.type
+      - ES_JAVA_OPTS
+    volumes:
+      - ./data/elasticsearch-data:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+      - 9300:9300
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:${ELASTIC_IMAGE_TAG}
+    container_name: kibana
+    restart: ${RESTART_POLICY}
+    environment:
+      - ELASTICSEARCH_URL
+    ports:
+      - 5601:5601
+
+  zookeeper:
+    image: bitnami/zookeeper:${ZOOKEEPER_IMAGE_TAG}
+    container_name: zookeeper
+    restart: ${RESTART_POLICY}
+    environment:
+      - TZ
+      - ALLOW_ANONYMOUS_LOGIN
+    volumes:
+      - ./data/zookeeper-data:/bitnami/zookeeper:Z
+    ports:
+      - 2181:2181
+
+  kafka:
+    image: bitnami/kafka:${KAFKA_IMAGE_TAG}
+    container_name: kafka
+    restart: ${RESTART_POLICY}
+    environment:
+      - TZ
+      - KAFKA_ZOOKEEPER_CONNECT
+      - KAFKA_BROKER_ID
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+      - KAFKA_ADVERTISED_PORT
+      - KAFKA_ADVERTISED_LISTENERS
+      - ALLOW_PLAINTEXT_LISTENER
+    volumes:
+      - ./data/kafka-data:/bitnami/kafka:Z
+    ports:
+      - 9092:9092
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop:${KAFDROP_IMAGE_TAG}
+    container_name: kafkawebui
+    restart: ${RESTART_POLICY}
+    environment:
+      - TZ
+      - KAFKA_BROKERCONNECT
+      - JVM_OPTS
+    ports:
+      - 9000:9000
+
+  debezium:
+    image: debezium/connect:${DEBEZIUM_IMAGE_TAG}
+    container_name: debezium
+    restart: ${RESTART_POLICY}
+    environment:
+      - TZ
+      - GROUP_ID
+      - BOOTSTRAP_SERVERS
+      - CONFIG_STORAGE_TOPIC
+      - OFFSET_STORAGE_TOPIC
+      - STATUS_STORAGE_TOPIC
+    volumes:
+      - ./data/debezium-data/logs:/kafka/logs:Z
+      - ./data/debezium-data/datas:/kafka/data:Z
+      - ./data/debezium-data/configs:/kafka/config:Z
+    ports:
+      - 8083:8083

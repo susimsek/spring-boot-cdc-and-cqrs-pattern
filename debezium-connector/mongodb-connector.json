@@ -1,0 +1,16 @@
+{
+  "name": "mongodb-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.mongodb.MongoDbConnector",
+    "tasks.max": "1",
+    "mongodb.hosts": "rs0/mongodb-primary:27017",
+    "mongodb.name": "dbserver",
+    "mongodb.user": "root",
+    "mongodb.password": "root",
+    "database.history.kafka.bootstrap.servers": "kafka:9092",
+    "database.include.list": "demo",
+    "heartbeat.interval.ms": 5000,
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false"
+  }
+}
