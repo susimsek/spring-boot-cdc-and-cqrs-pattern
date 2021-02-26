@@ -39,10 +39,11 @@ sudo chmod +x connector.sh
 
 ## Used Technologies
 
-* Spring Boot 2.4.2
+* Spring Boot 2.4.3
 * Mongodb (Replica Mod)
 * Elasticsearch
 * Kibana
+* Fluentd  
 * Zookeeper
 * Kafka
 * Kafdrop
@@ -51,6 +52,8 @@ sudo chmod +x connector.sh
 * Spring Boot Mongodb Reactive  
 * Spring Boot Data Elasticsearch
 * Spring Boot Validation
+* Spring Boot Log4j2  
+* Kafka Log4j Appender
 * Spring Boot Aop
 * Spring Kafka  
 * Guava

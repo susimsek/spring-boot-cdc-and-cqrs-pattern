@@ -29,6 +29,11 @@ services:
       - PROBLEM_ERROR_VALIDATION
       - PROBLEM_BASE_URL
       - PROBLEM_UNEXPECTED_ERROR_PACKAGE_LIST
+      - KAFKA_LOG_TOPIC
+      - KAFKA_HOST
+      - KAFKA_PORT
+      - LOG_DATEFORMAT_PATTERN
+      - KAFKA_FILTERED_LOG_LEVEL
     ports:
       - ${SERVER_PORT}:${SERVER_PORT}
 
@@ -129,6 +134,16 @@ services:
       - ELASTICSEARCH_URL
     ports:
       - 5601:5601
+
+  fluentd:
+    image: bitnami/fluentd:${FLUENTD_IMAGE_TAG}
+    container_name: fluentd
+    restart: ${RESTART_POLICY}
+    volumes:
+      - ./fluentd/fluentd.conf:/opt/bitnami/fluentd/conf/fluentd.conf
+    ports:
+      - 24224:24224
+      - 5140:5140
 
   zookeeper:
     image: bitnami/zookeeper:${ZOOKEEPER_IMAGE_TAG}
